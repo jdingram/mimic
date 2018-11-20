@@ -21,7 +21,7 @@ def get_table(host, dbname, schema, table, columns, where='row_id>0'):
 
 	# Execute query
 	cur.execute("SELECT {} FROM {}.{} WHERE {}".format(columns, schema, table, where))
-	print('Query extraction executed')
+	print('Query executed')
 
 	if cur.rowcount > 0:
 		# Get rows and column names
