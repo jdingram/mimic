@@ -272,3 +272,109 @@ def get_admission_data(admissions):
 	df = df[ordered_columns]
 
 	return df
+
+	
+def get_chartevents(host, dbname, admissions, reading):
+
+	'''
+	Function for importing chartevents for a list of admissions
+
+	'''
+
+	# Select DB location
+	con = p.connect("host={} dbname={}".format(host, dbname))
+	cur = con.cursor()
+
+	admissions=tuple(set(admissions))
+
+	# Execute query
+	cur.execute("SELECT\
+	                a.subject_id\
+	                ,a.hadm_id\
+	                ,a.itemid\
+	                ,b.valuenum\
+	            FROM\
+	                ((SELECT subject_id\
+	                        ,hadm_id\
+	                        ,itemid\
+	                        ,{}(charttime) AS reading_time\
+	                FROM mimiciii.chartevents\
+	                WHERE hadm_id IN {}\
+	                GROUP BY 1,2,3) a\
+	                LEFT JOIN\
+	                (SELECT hadm_id\
+	                        ,itemid\
+	                        ,charttime\
+	                        ,valuenum\
+	                FROM mimiciii.chartevents) b\
+	                ON a.hadm_id = b.hadm_id AND a.itemid = b.itemid AND a.reading_time = b.charttime)\
+	            WHERE valuenum IS NOT null".format(reading, admissions))
+
+	if cur.rowcount > 0:
+	    # Get rows and column names
+	    rows=cur.fetchall()
+	    column_names = [desc[0] for desc in cur.description]
+
+	    # Create DataFrame
+	    df = pd.DataFrame(rows)
+	    df.columns = column_names
+
+	    # De-Dupe
+	    df.drop_duplicates(inplace=True)
+
+	    return df
+	else:
+	    print('No rows returned')
+
+
+def get_labevents(host, dbname, admissions, reading):
+
+	'''
+	Function for importing labevents for a list of admissions
+
+	'''
+
+	# Select DB location
+	con = p.connect("host={} dbname={}".format(host, dbname))
+	cur = con.cursor()
+
+	admissions=tuple(set(admissions))
+
+	# Execute query
+	cur.execute("SELECT\
+	                a.subject_id\
+	                ,a.hadm_id\
+	                ,a.itemid\
+	                ,b.valuenum\
+	            FROM\
+	                ((SELECT subject_id\
+	                        ,hadm_id\
+	                        ,itemid\
+	                        ,{}(charttime) AS reading_time\
+	                FROM mimiciii.labevents\
+	                WHERE hadm_id IN {}\
+	                GROUP BY 1,2,3) a\
+	                LEFT JOIN\
+	                (SELECT hadm_id\
+	                        ,itemid\
+	                        ,charttime\
+	                        ,valuenum\
+	                FROM mimiciii.labevents) b\
+	                ON a.hadm_id = b.hadm_id AND a.itemid = b.itemid AND a.reading_time = b.charttime)\
+	            WHERE valuenum IS NOT null".format(reading, admissions))
+
+	if cur.rowcount > 0:
+	    # Get rows and column names
+	    rows=cur.fetchall()
+	    column_names = [desc[0] for desc in cur.description]
+
+	    # Create DataFrame
+	    df = pd.DataFrame(rows)
+	    df.columns = column_names
+
+	    # De-Dupe
+	    df.drop_duplicates(inplace=True)
+
+	    return df
+	else:
+	    print('No rows returned')
