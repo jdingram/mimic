@@ -10,6 +10,14 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from datetime import datetime
 
+# Set up paths
+project_root = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+src_folder = os.path.join(project_root, 'src')
+
+# Import src functions
+sys.path.insert(0, src_folder)
+from s3_storage import *
+
 startTime = datetime.now()
 print('---> START TIME: ', startTime)
 
@@ -79,11 +87,7 @@ def run_random_search(model, random_grid, scoring, cv, n_iter, X_train, y_train)
     return random_search_model
 
 ### --- IMPORT DATA
-
-s3 = boto3.resource('s3')
-s3.Object('mimic-jamesi', 'acute_respiratory_failure_train.csv').download_file('acute_respiratory_failure_train.csv')
-train = pd.read_csv('acute_respiratory_failure_train.csv', index_col=0)
-os.remove('acute_respiratory_failure_train.csv')
+train = from_s3(bucket='mimic-jamesi', filename='acute_respiratory_failure_train.csv', index_col=0)
 
 X_train, y_train = final_cleaning(ids = ['subject_id', 'hadm_id'], target = 'target', train = train)
 print('--> Cleaning done')
