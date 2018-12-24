@@ -40,6 +40,26 @@ def get_table(host, dbname, schema, table, columns, where='row_id>0'):
 		print('No rows returned')
 
 
+def get_data_simple(query):
+	# Select DB location
+	con = p.connect("host=localhost dbname=mimic")
+	cur = con.cursor()
+
+	# Execute query
+	cur.execute(query)
+
+	# Get rows and column names
+	rows=cur.fetchall()
+	column_names = [desc[0] for desc in cur.description]
+
+	# Create DataFrame
+	df = pd.DataFrame(rows)
+	df.columns = column_names
+
+	# De-Dupe
+	df.drop_duplicates(inplace=True)
+	return df
+
 
 def get_patient_admissions_diagnoses(subjects):
 

@@ -32,17 +32,17 @@ def plot_KDE(df, group_by, group_a, group_b, feature):
     df = df[[group_by, feature]]
     df.dropna(inplace=True)
 
-    # KDE plot of patients who survived
+    # KDE plots for both groups
     sns.kdeplot(df.loc[df[group_by] == group_a, feature], label = group_a)
-
-    # KDE plot of patients who died
     sns.kdeplot(df.loc[df[group_by] == group_b, feature], label = group_b)
 
     # Labeling of plot
     plt.xlabel(feature); plt.ylabel('Density'); plt.title(feature);
 
     plt.show()
-
+    
+    del df
+    plt.clf()
 
 
 def plot_perc_bar_chart(df, group_by, group_a, group_b, feature, value):
@@ -56,9 +56,9 @@ def plot_perc_bar_chart(df, group_by, group_a, group_b, feature, value):
     plt.figure(figsize = (7, 5))
 
     # Count number of unique subjects in the subject and base group, then work out % of group totals
-    t = df.groupby([group_by, feature]).agg({value: 'nunique'}).reset_index()
-    t['tot'] = t.groupby(group_by).subject_id.transform('sum')
-    t['perc'] = t[value] / t['tot']
+    t = df.groupby([group_by, feature]).agg({value: 'nunique'}).reset_index().rename(columns={value:'col'})
+    t['tot'] = t.groupby(group_by).col.transform('sum')
+    t['perc'] = t['col'] / t['tot']
 
     # Plot
     sns.barplot(data=t, x=feature, y="perc", hue=group_by)
@@ -90,45 +90,50 @@ def compare_groups(subjects, base):
     df = df[['subject_id', 'group', 'gender', 'age_on_admission', 'age_adm_bucket', 'ethnicity', 'ethnicity_simple',\
              'diagnosis_name', 'hospital_expire_flag']]
 
+    # Plot the comparison graphs
+    graph_comparisons(df = df, group_col = 'group', group_a = 'subject', group_b = 'base')
+    
+    return df
+
+
+def graph_comparisons(df, group_col, group_a, group_b):
+
     # KDE for age
     plot_KDE(df = df,
-             group_by = 'group',
-             group_a = 'subject',
-             group_b = 'base',
+             group_by = group_col,
+             group_a = group_a,
+             group_b = group_b,
              feature = 'age_on_admission')
 
     # Bar chart for age buckets
     plot_perc_bar_chart(df = df,
-                        group_by = 'group',
-                        group_a = 'subject',
-                        group_b = 'base',
+                        group_by = group_col,
+                        group_a = group_a,
+                        group_b = group_b,
                         feature = 'age_adm_bucket',
-                        value = 'subject_id')
+                        value = 'hadm_id')
 
     # Bar chart for Gender
     plot_perc_bar_chart(df = df,
-                        group_by = 'group',
-                        group_a = 'subject',
-                        group_b = 'base',
+                        group_by = group_col,
+                        group_a = group_a,
+                        group_b = group_b,
                         feature = 'gender',
-                        value = 'subject_id')
+                        value = 'hadm_id')
 
     # Bar chart for ethnicity
     plot_perc_bar_chart(df = df,
-                        group_by = 'group',
-                        group_a = 'subject',
-                        group_b = 'base',
+                        group_by = group_col,
+                        group_a = group_a,
+                        group_b = group_b,
                         feature = 'ethnicity_simple',
-                        value = 'subject_id')
+                        value = 'hadm_id')
 
     # Bar chart for hotel expiry
     plot_perc_bar_chart(df = df,
-                        group_by = 'group',
-                        group_a = 'subject',
-                        group_b = 'base',
+                        group_by = group_col,
+                        group_a = group_a,
+                        group_b = group_b,
                         feature = 'hospital_expire_flag',
-                        value = 'subject_id')
-    
-    return df
-
+                        value = 'hadm_id')
 
