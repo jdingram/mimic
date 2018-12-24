@@ -1,4 +1,5 @@
 import sys
+import os
 import boto3
 import botocore
 import pandas as pd
@@ -82,6 +83,7 @@ def run_random_search(model, random_grid, scoring, cv, n_iter, X_train, y_train)
 s3 = boto3.resource('s3')
 s3.Object('mimic-jamesi', 'acute_respiratory_failure_train.csv').download_file('acute_respiratory_failure_train.csv')
 train = pd.read_csv('acute_respiratory_failure_train.csv', index_col=0)
+os.remove('acute_respiratory_failure_train.csv')
 
 X_train, y_train = final_cleaning(ids = ['subject_id', 'hadm_id'], target = 'target', train = train)
 print('--> Cleaning done')
