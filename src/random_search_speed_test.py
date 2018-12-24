@@ -1,4 +1,4 @@
-import pandas as pd
+import sys
 import boto3
 import botocore
 import pandas as pd
@@ -13,7 +13,7 @@ startTime = datetime.now()
 print('---> START TIME: ', startTime)
 
 ### --- RUNS
-iterations = 1
+iterations = int(sys.argv[1])
 print('--->ITERATIONS:', iterations)
 
 ### --- FUNCTIONS
@@ -112,5 +112,5 @@ df = run_random_search(model=RandomForestRegressor(), random_grid=rf_random_grid
 
 print('DF LENGTH: ', len(pd.DataFrame(df.cv_results_)))
 
-print('---> END TIME: ', datetime.now() - startTime)
+print('---> TOTAL TIME: ', datetime.now() - startTime)
 
