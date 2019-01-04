@@ -17,6 +17,9 @@ def final_cleaning(ids, target, train, test=None):
     # Split features and labels
     X_train = train.drop(columns=drop_cols)
     y_train = np.array(train[target].tolist())
+
+    # Get feature names
+    feature_names = list(X_train.columns)
     
     # Impute missing values
     imputer = SimpleImputer(strategy = 'median')
@@ -29,14 +32,14 @@ def final_cleaning(ids, target, train, test=None):
     X_train = scaler.transform(X_train)
     
 
-    if test:
+    if type(test) == pd.DataFrame:
         test = test.sample(frac=1).reset_index(drop=True)
         X_test = test.drop(columns=drop_cols)
         y_test = np.array(test[target].tolist())
         X_test = imputer.transform(X_test)
         X_test = scaler.transform(X_test)
-        return X_train, X_test, y_train, y_test
+        return X_train, X_test, y_train, y_test, feature_names
 
     else:
-        return X_train, y_train
+        return X_train, y_train, feature_names
     

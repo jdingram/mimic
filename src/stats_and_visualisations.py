@@ -5,50 +5,6 @@ import seaborn as sns
 from itertools import combinations
 
 
-def compare_itemids(df):
-
-    '''
-    Define a function that for a list of item IDs:
-    1. Plots a KDE for their values
-    2. Outputs a table showing statistical values
-    '''
-
-    print("=========")
-    print(str(df.name.values[0]))
-    print("=========")
-
-    # Drop duplicates and nans
-    df.drop_duplicates(inplace=True)    
-    df.dropna(inplace=True)
-
-    # Find old itemids associated
-    item_ids = df.itemid.unique().tolist()
-
-    # --- Plot a KDE
-    plt.figure(figsize = (7, 5))
-
-    # KDE plots for each groups
-    for i in item_ids:
-        sns.kdeplot(df.loc[df['itemid'] == i, 'valuenum'], label = i)
-
-    # Labeling of plot
-    plt.ylabel('Density'); plt.title(str(df.name.values[0]));
-
-    plt.show()
-
-    # -- Output stats
-    stats = (df.groupby('itemid')
-               .agg({'hadm_id': 'nunique',
-                     'valuenum': ['mean', 'median', 'std']})
-               .reset_index())
-    stats.columns = ['itemid', 'patients', 'mean', 'median', 'std']
-
-    print(stats)
-
-    return stats
-
-
-
 def plot_KDE(df, group_by, group_a, group_b, feature):
 
     '''
@@ -81,14 +37,20 @@ def plot_perc_bar_chart(df, group_by, group_a, group_b, feature, value):
 
     '''
 
-    Plots bar charts for discrete variables, comparing the proportion of 2 populations falling into each category
+    Plots bar charts for discrete variables, comparing the proportion
+    of 2 populations falling into each category
 
     '''
 
     plt.figure(figsize = (7, 5))
 
-    # Count number of unique subjects in the subject and base group, then work out % of group totals
-    t = df.groupby([group_by, feature]).agg({value: 'nunique'}).reset_index().rename(columns={value:'col'})
+    # Count number of unique subjects in the subject and base group,
+    # then work out % of group totals
+    
+    t = (df.groupby([group_by, feature])
+           .agg({value: 'nunique'})
+           .reset_index()
+           .rename(columns={value:'col'}))
     t['tot'] = t.groupby(group_by).col.transform('sum')
     t['perc'] = t['col'] / t['tot']
 
@@ -99,7 +61,11 @@ def plot_perc_bar_chart(df, group_by, group_a, group_b, feature, value):
 
 
 
-def graph_comparisons(df, ids, group_col, group_a, group_b, plot=['age_on_admission', 'age_adm_bucket', 'gender', 'ethnicity_simple']):
+def graph_comparisons(df, ids, group_col, group_a, group_b,
+                      plot=['age_on_admission',
+                            'age_adm_bucket',
+                            'gender',
+                            'ethnicity_simple']):
 
     for p in plot:
 
@@ -128,14 +94,16 @@ def best_cv_by_run(results, cv_score):
     run = results.index + 1
     plt.figure(figsize = (7, 5))
     sns.lineplot(x=run, y=max_score)
-    plt.ylabel('Best CV score'); plt.ylabel('Run'); plt.title('Best CV score by run');
+    plt.ylabel('Best CV score'); plt.ylabel('Run');
+    plt.title('Best CV score by run');
     plt.show()
 
 
 
 def plot_single_results(results, training_score, test_score, fit_time):
     
-    params = [param for param in results.columns if param not in [training_score, test_score, fit_time]]
+    params = [param for param in results.columns
+              if param not in [training_score, test_score, fit_time]]
     
     for param in params:
     
