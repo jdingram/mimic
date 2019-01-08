@@ -3,6 +3,7 @@ import os
 import boto3
 import botocore
 import pandas as pd
+import numpy as np
 
 
 def from_s3(bucket, filename, index_col=None):
@@ -19,13 +20,18 @@ def from_s3(bucket, filename, index_col=None):
 	
 	s3 = boto3.resource('s3')
 	s3.Object(bucket, filename).download_file(filename)
-	df = pd.read_csv(filename, index_col=index_col)
+	
+	if filename.split('.')[-1] == 'csv':
+		obj = pd.read_csv(filename, index_col=index_col)
+	elif filename.split('.')[-1] == 'npy':
+		obj = np.load(filename)
+
 	os.remove(filename)
 	
-	return df
+	return obj
 
 
-def to_s3(df, bucket, filename):
+def to_s3(obj, bucket, filename):
 	
 	'''
 	
@@ -37,6 +43,13 @@ def to_s3(df, bucket, filename):
 	'''
 	
 	s3 = boto3.client('s3')
-	df.to_csv('out_file.csv')
-	s3.upload_file('out_file.csv', bucket, filename)
-	os.remove('out_file.csv')
+	
+	if type(obj) == pd.DataFrame:
+		obj.to_csv('out_file.csv')
+		s3.upload_file('out_file.csv', bucket, filename)
+		os.remove('out_file.csv')
+
+	elif type(obj) == np.ndarray:
+		np.save('out_file', obj)
+		s3.upload_file('out_file.npy', bucket, filename)
+		os.remove('out_file.npy')

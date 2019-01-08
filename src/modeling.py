@@ -19,7 +19,7 @@ def final_cleaning(ids, target, train, test=None):
     y_train = np.array(train[target].tolist())
 
     # Get feature names
-    feature_names = list(X_train.columns)
+    feature_names = np.array(list(X_train.columns))
     
     # Impute missing values
     imputer = SimpleImputer(strategy = 'median')
