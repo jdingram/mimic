@@ -81,26 +81,26 @@ def get_diagnosis_groups(diagnosis, optional_exclusions=None):
 
 def add_chart_data(df):
 
-	'''
+    '''
 
-	This function takes a given dataframe of admissions and merges on the final
-	chart event readings for these admissions.
+    This function takes a given dataframe of admissions and merges on the final
+    chart event readings for these admissions.
 
-	The admission dataframe must include subject_id and hadm_id in order to
-	identify the admissions
+    The admission dataframe must include subject_id and hadm_id in order to
+    identify the admissions
 
-	'''
+    '''
 
-	readings = from_s3(bucket='mimic-jamesi',
-					   filename='first_reading.csv',
-					   index_col=0)
+    readings = from_s3(bucket='mimic-jamesi',
+                       filename='first_reading.csv',
+                       index_col=0)
 
-	df = pd.merge(df, readings,
-				  how='left',
-	              left_on=['subject_id', 'hadm_id'],
-	              right_on=['subject_id', 'hadm_id'])
-	
-	return df
+    df = pd.merge(df, readings,
+                  how='left',
+                  left_on=['subject_id', 'hadm_id'],
+                  right_on=['subject_id', 'hadm_id'])
+
+    return df
 
 
 

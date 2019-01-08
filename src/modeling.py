@@ -9,7 +9,7 @@ def final_cleaning(ids, target, train, test=None):
         drop_cols = ids.copy()
     else:
         drop_cols = [ids, target]
-            
+    
     # Shuffle
     train = train.sample(frac=1).reset_index(drop=True)
     
