@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, Imputer
 
 def final_cleaning(ids, target, train, test=None):
 
@@ -22,7 +21,7 @@ def final_cleaning(ids, target, train, test=None):
     feature_names = np.array(list(X_train.columns))
     
     # Impute missing values
-    imputer = SimpleImputer(strategy = 'median')
+    imputer = Imputer(strategy = 'median')
     imputer.fit(X_train)
     X_train = imputer.transform(X_train)
     
