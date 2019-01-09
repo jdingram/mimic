@@ -2,43 +2,13 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import psycopg2 as p
 
-
-def get_data(query):
-
-  '''
-  
-  This function queries the local Postgres database with a specified query,
-  returning a pandas dataframe.
-
-  It assumes a few values that were created when the Postgres database was
-  created:
-
-  Host: localhost
-  DB name: mimic
-  Schema: mimiciii (which must be specified in the query itself)
-
-  '''
-  
-  # Select DB location and execute the specified query
-  con = p.connect("host=localhost dbname=mimic")
-  cur = con.cursor()
-  cur.execute(query)
-
-  # Retrieve the rows and column names so that a Pandas dataframe can be created
-  rows=cur.fetchall()
-  column_names = [desc[0] for desc in cur.description]
-  df = pd.DataFrame(rows)
-  df.columns = column_names
-
-  # Ensure the final output is clean by de-duping and reseting the index
-  df.drop_duplicates(inplace=True)
-  df.reset_index(inplace=True, drop=True)
-  
-  return df
-
-
+# Set up paths & import functions
+project_root = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+src_folder = os.path.join(project_root, 'src')
+sys.path.insert(0, src_folder)
+from s3_storage import *
+from utilities import *
 
 def create_admission_diagnosis_table():
 
@@ -90,19 +60,27 @@ def create_admission_diagnosis_table():
 
     '''
 
-    # Get patient data
-    patient_data = get_data(
-                   query = "SELECT DISTINCT \
-                            subject_id, dob, dod, gender, expire_flag\
-                            FROM mimiciii.patients")
-
+    # Get patient data    
+    patient_data = from_s3('mimic-jamesi', 'raw_data/PATIENTS.csv')
+    patient_data = lowercase_columns(patient_data)
+    patient_data = patient_data[['subject_id', 'dob', 'dod', 'gender', 'expire_flag']]
+    patient_data = patient_data.drop_duplicates()
+    
+    patient_data['dob'] = pd.to_datetime(patient_data['dob'])
+    patient_data['dod'] = pd.to_datetime(patient_data['dod'])
+    
+    
     # Get admission data
-    admission_data = get_data(
-                    query = "SELECT DISTINCT \
-                            subject_id, hadm_id, admittime, dischtime,\
-                            deathtime, admission_type, ethnicity,\
-                            hospital_expire_flag, diagnosis\
-                            FROM mimiciii.admissions")
+    admission_data = from_s3('mimic-jamesi', 'raw_data/ADMISSIONS.csv')
+    admission_data = lowercase_columns(admission_data)
+    admission_data = admission_data[['subject_id', 'hadm_id', 'admittime', 'dischtime',
+                                     'deathtime', 'admission_type', 'ethnicity',
+                                     'hospital_expire_flag', 'diagnosis']]
+    admission_data = admission_data.drop_duplicates()
+    
+    admission_data['admittime'] = pd.to_datetime(admission_data['admittime'])
+    admission_data['dischtime'] = pd.to_datetime(admission_data['dischtime'])
+    admission_data['deathtime'] = pd.to_datetime(admission_data['deathtime'])
 
     # Number of admissions per patient
     admission_data['total_admissions'] = (admission_data.groupby('subject_id')
@@ -117,16 +95,19 @@ def create_admission_diagnosis_table():
                                                        .cumcount() + 1)
 
     # Get diagnosis data
-    diagnoses = get_data(query = "SELECT DISTINCT \
-                                  subject_id, hadm_id, icd9_code\
-                                  FROM mimiciii.diagnoses_icd")
+    diagnoses = from_s3('mimic-jamesi', 'raw_data/DIAGNOSES_ICD.csv')
+    diagnoses = lowercase_columns(diagnoses)
+    diagnoses = diagnoses[['subject_id', 'hadm_id', 'icd9_code']]
+    diagnoses = diagnoses.drop_duplicates()
 
     # Drop disgnoses where icd9_code is null
     diagnoses = diagnoses[~diagnoses['icd9_code'].isnull()]
 
     # Get disgnosis names
-    diagnoses_n = get_data(query = "SELECT DISTINCT icd9_code, short_title\
-                                    FROM mimiciii.d_icd_diagnoses")
+    diagnoses_n = from_s3('mimic-jamesi', 'raw_data/D_ICD_DIAGNOSES.csv')
+    diagnoses_n = lowercase_columns(diagnoses_n)
+    diagnoses_n = diagnoses_n[['icd9_code', 'short_title']]
+    diagnoses_n = diagnoses_n.drop_duplicates()
 
     # Merge diagnosis names onto icd9 codes
     diagnoses = pd.merge(diagnoses, diagnoses_n,

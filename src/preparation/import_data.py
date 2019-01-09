@@ -8,6 +8,39 @@ import pandas as pd
 import numpy as np
 import psycopg2 as p
 
+def get_data(query):
+
+  '''
+  
+  This function queries the local Postgres database with a specified query,
+  returning a pandas dataframe.
+
+  It assumes a few values that were created when the Postgres database was
+  created:
+
+  Host: localhost
+  DB name: mimic
+  Schema: mimiciii (which must be specified in the query itself)
+
+  '''
+  
+  # Select DB location and execute the specified query
+  con = p.connect("host=localhost dbname=mimic")
+  cur = con.cursor()
+  cur.execute(query)
+
+  # Retrieve the rows and column names so that a Pandas dataframe can be created
+  rows=cur.fetchall()
+  column_names = [desc[0] for desc in cur.description]
+  df = pd.DataFrame(rows)
+  df.columns = column_names
+
+  # Ensure the final output is clean by de-duping and reseting the index
+  df.drop_duplicates(inplace=True)
+  df.reset_index(inplace=True, drop=True)
+  
+  return df
+
 
 def get_table(host, dbname, schema, table, columns, where='row_id>0'):
 
