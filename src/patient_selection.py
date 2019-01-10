@@ -40,7 +40,7 @@ def get_diagnosis_groups(diagnosis, optional_exclusions=None):
 
 	# Import data
 	admissions = from_s3(bucket='mimic-jamesi',
-						 filename='admission_diagnosis_table.csv',
+						 filepath='data/admission_diagnosis_table.csv',
 						 index_col=0)
 
 	# ==== 1 ==== Find all patients diagnosed with the selected condition
@@ -92,7 +92,7 @@ def add_chart_data(df):
     '''
 
     readings = from_s3(bucket='mimic-jamesi',
-                       filename='first_reading.csv',
+                       filepath='data/first_reading.csv',
                        index_col=0)
 
     df = pd.merge(df, readings,
@@ -123,7 +123,7 @@ def add_profile_data(df, profile_data):
 	keep_cols = ['subject_id', 'hadm_id'] + profile_data
 
 	admissions = from_s3(bucket='mimic-jamesi',
-						 filename='admission_diagnosis_table.csv',
+						 filepath='data/admission_diagnosis_table.csv',
 						 index_col=0)
 
 	admissions = admissions[keep_cols]

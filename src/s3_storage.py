@@ -2,6 +2,7 @@ import sys
 import os
 import boto3
 import botocore
+import pickle
 import pandas as pd
 import numpy as np
 
@@ -26,6 +27,10 @@ def from_s3(bucket, filepath, index_col=None):
         obj = pd.read_csv(new_filename, index_col=index_col)
     elif filepath.split('.')[-1] == 'npy':
         obj = np.load(new_filename)
+    else:
+        new_filename = new_filename.split('.')[0]
+        with open(new_filename, 'rb') as file:  
+            obj = pickle.load(file)
 
     os.remove(new_filename)
 
@@ -54,3 +59,11 @@ def to_s3(obj, bucket, filepath):
         np.save('out_file', obj)
         s3.upload_file('out_file.npy', bucket, filepath)
         os.remove('out_file.npy')
+        
+    else:
+        with open('out_file.pkl', 'wb') as file:  
+            pickle.dump(obj, file)
+        s3.upload_file('out_file.pkl', bucket, filepath)
+        os.remove('out_file.pkl')
+        
+        
