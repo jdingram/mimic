@@ -1,6 +1,14 @@
+import os
+import sys
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, Imputer
+
+# Set up paths & import src functions
+project_root = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+src_folder = os.path.join(project_root, 'src')
+sys.path.insert(0, src_folder)
+from s3_storage import *
 
 def final_cleaning(ids, target, train, test=None):
 
@@ -41,4 +49,16 @@ def final_cleaning(ids, target, train, test=None):
 
     else:
         return X_train, y_train, feature_names
+
+
+def final_run(X_train, y_train, best_params, classifier, model_name):
+    
+    # Create the model
+    model = classifier(**best_params)
+
+    # Train the model
+    model.fit(X_train, y_train)
+    
+    # Save model
+    to_s3(obj=model, bucket='mimic-jamesi', filepath='models/{}'.format(model_name))
     
