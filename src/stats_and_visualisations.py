@@ -188,3 +188,89 @@ def plot_single_results(results, training_score, cv_score, params_dict):
 
         plt.show()
         plt.clf()
+        
+def plot_loss_by_epoch(df, x_axis='epochs', display_points=50):
+    
+    '''
+    Function that takes a Dataframe showing loss by epoch, and
+    visualises this. The y axis is loss, and the x axis is either
+    epoch number (default) or the learning rate for the epoch
+    
+    Parameters:
+        1. df - the DataFrame containing the loss by epoch
+        2. x_axis - either 'lr' or 'epochs', depending on what
+           should be plotted on the x axis
+        3. display points - how many ticks should be shown on
+           the x axis (reduced from the total number of epochs
+           for readability)
+    '''
+    
+    # Find labels for the x axis: lr or epochs
+    if x_axis == 'lr':
+        x_labels = df['lr'].tolist()
+    else:
+        x_labels = df['epoch'].tolist()
+    
+    # Calculate the increments at which to show x ticks
+    x_len = len(x_labels)
+    x = np.arange(x_len)
+    x_ticks_n = int(np.ceil(x_len/display_points))
+        
+    # Create the visualisation
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(x, df['loss'], label='train')
+    ax.plot(x, df['val_loss'], label='valid')
+    ax.xaxis.set_ticks(x)
+    ax.xaxis.set_ticklabels(x_labels)
+    plt.xticks(rotation='vertical')
+    plt.legend()
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel(x_axis)
+    
+    # Only show the desired number of x ticks (determined by display_points)
+    for index, label in enumerate(ax.xaxis.get_ticklabels()):
+        if index % x_ticks_n != 0:
+            label.set_visible(False)
+    for index, label in enumerate(ax.xaxis.get_ticklines()):
+        if index % x_ticks_n != 0:
+            label.set_visible(False)
+    
+    plt.show()
+    plt.clf()
+    
+    
+def plot_neural_net_hyperparam(results_df, hyperparam, train_score, valid_score):
+    
+    '''
+    Function that for a range of values for a single Neural Network
+    hyperparameter, plots the training and cross validation AUC scores.
+    
+    Parameters:
+        1. results_df - the input dataframe containing the scores and
+           associated hyperparameter values
+        2. hyperparam - the df column contianing the chosen hyperparameter
+           values
+        3. train_score - the df column containing the training scores
+        4. valid_score - the df column containing the training scores
+    
+    '''
+
+    # Find the values and labels to be plotted
+    x_labels = results_df[hyperparam].tolist()
+    x = np.arange(len(x_labels))
+    train = results_df[train_score].tolist()
+    valid = results_df[valid_score].tolist()
+
+    # Create the visualisation
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.plot(x, train, label='train')
+    ax.plot(x, valid, label='valid')
+    ax.xaxis.set_ticks(x)
+    ax.xaxis.set_ticklabels(x_labels)
+    plt.legend()
+    plt.xlabel(hyperparam)
+    plt.ylabel('Score')
+    plt.title('Score vs {}'.format(hyperparam))
+    plt.show()
+    plt.clf()
