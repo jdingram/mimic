@@ -11,8 +11,7 @@ def from_s3(bucket, filepath, index_col=None):
 
     '''
 
-    Function that pulls a file from a specified AWS S3 bucket, returning a 
-    Pandas dataframe.
+    Function that pulls a file from a specified AWS S3 bucket.
 
     The AWS key and secret key must already be configured before this will
     run on any machine
@@ -41,7 +40,7 @@ def to_s3(obj, bucket, filepath):
 
     '''
 
-    Function that saves a Pandas dataframe into a specified AWS S3 bucket.
+    Function that saves either a DataFrame, np array or trained model onto S3.
 
     The AWS key and secret key must already be configured before this will
     run on any machine

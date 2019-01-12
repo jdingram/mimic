@@ -17,7 +17,7 @@ def create_admission_diagnosis_table():
     This is intended as a single use function, designed to pull out the most important
     patient, admission and diagnosis data into a single dataset. Once this
     dataset is created, it can be used as the basis for later analysis without
-    needing to query the Postgres database directly.
+    needing to use the raw data.
 
     The dataset includes:
       1) The most important patient demographic data, namely:
@@ -60,24 +60,25 @@ def create_admission_diagnosis_table():
 
     '''
 
-    # Get patient data    
+    # Get patient data and perform manual cleaning    
     patient_data = from_s3('mimic-jamesi', 'raw_data/PATIENTS.csv')
     patient_data = lowercase_columns(patient_data)
     patient_data = patient_data[['subject_id', 'dob', 'dod', 'gender', 'expire_flag']]
+    patient_data = patient_data[~patient_data['subject_id'].isna()]
     patient_data = patient_data.drop_duplicates()
-    
     patient_data['dob'] = pd.to_datetime(patient_data['dob'])
     patient_data['dod'] = pd.to_datetime(patient_data['dod'])
     
     
-    # Get admission data
+    # Get admission data and perform manual cleaning
     admission_data = from_s3('mimic-jamesi', 'raw_data/ADMISSIONS.csv')
     admission_data = lowercase_columns(admission_data)
     admission_data = admission_data[['subject_id', 'hadm_id', 'admittime', 'dischtime',
                                      'deathtime', 'admission_type', 'ethnicity',
                                      'hospital_expire_flag', 'diagnosis']]
     admission_data = admission_data.drop_duplicates()
-    
+    admission_data = admission_data[(~admission_data['subject_id'].isna()) &
+                                    (~admission_data['hadm_id'].isna())]
     admission_data['admittime'] = pd.to_datetime(admission_data['admittime'])
     admission_data['dischtime'] = pd.to_datetime(admission_data['dischtime'])
     admission_data['deathtime'] = pd.to_datetime(admission_data['deathtime'])
@@ -94,22 +95,18 @@ def create_admission_diagnosis_table():
     admission_data['admission_number'] = (admission_data.groupby('subject_id')
                                                        .cumcount() + 1)
 
-    # Get diagnosis data
+    # Get diagnosis data and perform manual cleaning
     diagnoses = from_s3('mimic-jamesi', 'raw_data/DIAGNOSES_ICD.csv')
     diagnoses = lowercase_columns(diagnoses)
     diagnoses = diagnoses[['subject_id', 'hadm_id', 'icd9_code']]
     diagnoses = diagnoses.drop_duplicates()
-
-    # Drop disgnoses where icd9_code is null
     diagnoses = diagnoses[~diagnoses['icd9_code'].isnull()]
 
-    # Get disgnosis names
+    # Get disgnosis names so they can be merged onto icd9_code
     diagnoses_n = from_s3('mimic-jamesi', 'raw_data/D_ICD_DIAGNOSES.csv')
     diagnoses_n = lowercase_columns(diagnoses_n)
     diagnoses_n = diagnoses_n[['icd9_code', 'short_title']]
     diagnoses_n = diagnoses_n.drop_duplicates()
-
-    # Merge diagnosis names onto icd9 codes
     diagnoses = pd.merge(diagnoses, diagnoses_n,
                          how='left', left_on='icd9_code', right_on='icd9_code')
 
@@ -123,14 +120,14 @@ def create_admission_diagnosis_table():
     df['age_on_admission_shifted'] = np.where(df['age_on_admission'] < 0, 1, 0)
     df.loc[(df['age_on_admission'] < 0), 'age_on_admission'] = 89
 
-    # Add age bucket
+    # Add age bucket for easier analysis
     df.loc[df['age_on_admission'] < 45, 'age_adm_bucket'] = '1. <45'
     df.loc[(df['age_on_admission'] >= 45) & (df['age_on_admission'] < 60),'age_adm_bucket'] = '2. 45-60'
     df.loc[(df['age_on_admission'] >= 60) & (df['age_on_admission'] < 75), 'age_adm_bucket'] = '3. 60-75'
     df.loc[(df['age_on_admission'] >= 75) & (df['age_on_admission'] < 89), 'age_adm_bucket'] = '4. 75-89'
     df.loc[df['age_on_admission'] == 89, 'age_adm_bucket'] = '5. 89'
 
-    # Add simplified ethnicity field
+    # Add simplified ethnicity field for easier analysis
     df.loc[df['ethnicity'].str.contains('WHITE'), 'ethnicity_simple'] = 'WHITE'
     df.loc[df['ethnicity'].str.contains('BLACK'), 'ethnicity_simple'] = 'BLACK'
     df.loc[df['ethnicity'].str.contains('HISPANIC'), 'ethnicity_simple'] = 'HISPANIC'
@@ -172,7 +169,6 @@ def create_admission_diagnosis_table():
                       'hospital_expire_flag',
                       'diagnosis_icd9',
                       'diagnosis_name']
-
     df = df[ordered_columns]
 
     # Ensure the final output is clean by de-duping and reseting the index
