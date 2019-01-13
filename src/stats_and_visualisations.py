@@ -135,7 +135,7 @@ def best_cv_by_run(results, cv_score):
     plt.figure(figsize = (7, 5))
     sns.lineplot(x=run, y=max_score)
     plt.ylabel('Best CV score');
-    plt.ylabel('Run');
+    plt.xlabel('Run');
     plt.title('Best CV score by run');
     plt.show()
     plt.clf()
