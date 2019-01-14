@@ -3,7 +3,7 @@
 ## Background
 The purpose of this project is to use Machine Learning to predict Acute Kidney Failure using chart and lab data from the MIMIC critical care database, which was collected during patient admissions to the critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.
 
-PLEASE NOTE: This project is intended as an introductory investigation into the data and it's ability to predict diagnoses. For this version, certain investigations have not yet been carried out when producing the models. For example, the models to not control for any comorbidities suffered by the patients or the effects of any drugs. Therefore, this project is only a starting point and therefore should not be used to predict Acute Kidney Failure on real patients.
+PLEASE NOTE: This project is intended as an introductory investigation into the data and it's ability to predict diagnoses. For this version, certain investigations have not yet been carried out when producing the models. For example, the models do not control for any comorbidities suffered by the patients or the effects of any drugs. Therefore, this project is only a starting point and therefore should not be used to predict Acute Kidney Failure on real patients.
 
 ## Methodology
 The data used for creating the models contains 15,575 patient admissions, 39% of whom were diagnosed with Acute Kidney Failure and 61% of whom were not. The purpose of the models is to use chart and lab data to detect whether patients are suffering from Acute Kidney Failure. The scoring metric used was AUC due to the class imbalance of the data.
