@@ -33,7 +33,7 @@ There are 6 notebooks used in the project:
 On the test set, the best model was the Random Forest, with an AUC of 0.88. From looking at the feature importances, the most important features by far are Creatinine and BUN.
 
 ## Pipeline
-The packages used in this project are saved in the env.yml file. This is largely the Deep Learning AMI (Ubuntu) Version 20.0 from AWS, with the only modifications being the installation of LightGBM and upgrading Seaborn to version 0.20.0. The project was run end to end on AWS EC2 on Ubuntu machines, and all the raw data, clean data and trained models saved on AWS S3.
+The packages used in this project are saved in the env.yml file. This is largely the Deep Learning AMI (Ubuntu) Version 20.0 from AWS, with the only modifications being the installation of LightGBM and upgrading Seaborn to version 0.9.0. The project was run end to end on AWS EC2 on Ubuntu machines, and all the raw data, clean data and trained models saved on AWS S3.
 
 To reproduce the results, the raw data must be obtained directly from Physio Net. For this reason, the data is not made available in this project directory, and was instead securely saved on AWS S3. https://physionet.org/works/MIMICIIIClinicalDatabase/access.shtml
 
