@@ -17,14 +17,23 @@ The methodology was designed to be general case - meaning that for this version 
 ## Notebooks
 There are 6 notebooks used in the project:
 
-*0_generate_datasets* - Used to clean the raw data and produce CSVs that
+*0_generate_datasets* - Used to clean the raw data and produce CSVs containing patient admission data and chart/ lab data which is used for the remainder of the project.
 
+*1_select_patients* - Used to create the training and test sets used to predict a single diagnosis (in this case Acute Kidney Failure but can easily be configured for any diagnosis in the database). All data pre-processing is completed here and the output datasets are ready for the machine learning models.
+
+*2_baseline_models* - The data is used to train 3 classifiers from Scikit-Learn: LogisticRegression, DecisionTreeClassifier and RandomForestClassifier. The best models (using cross validation accuracy) are saved on S3.
+
+*3_light_gbm* - A LightGBM is trained, with the best model (in terms of cross validation accuracy) saved on S3.
+
+*4_neural_network* - Keras's Sequential Model is trained, with the best model (in terms of cross validation accuracy) saved on S3.
+
+*5_model_testing* - All 5 trained models are then tested on the previously unseen test data so their final accuracies can be compared.
 
 ## Results
-
+On the test set, the best model was the Random Forest, with an AUC of 0.88. From looking at the feature importances, the most important features by far are Creatinine and BUN.
 
 ## Pipeline
-The packages used in this project are saved in the env.yml file. This is largely the Deep Learning AMI (Ubuntu) Version 20.0 from AWS, with the only modifications being the installation of LightGBM and upgrading Seaborn to version 0.20.0. The project was run end to end on AWS EC2 on Ubuntu machines, and all the data used was saved on AWS S3.
+The packages used in this project are saved in the env.yml file. This is largely the Deep Learning AMI (Ubuntu) Version 20.0 from AWS, with the only modifications being the installation of LightGBM and upgrading Seaborn to version 0.20.0. The project was run end to end on AWS EC2 on Ubuntu machines, and all the raw data, clean data and trained models saved on AWS S3.
 
 To reproduce the results, the raw data must be obtained directly from Physio Net. For this reason, the data is not made available in this project directory, and was instead securely saved on AWS S3. https://physionet.org/works/MIMICIIIClinicalDatabase/access.shtml
 
