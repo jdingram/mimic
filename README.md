@@ -1,4 +1,4 @@
-# Predicting Acute Kidney Failure using MIMIC Critical Care Database
+# Detecting Acute Kidney Failure using MIMIC Critical Care Database
 
 ## Background
 The purpose of this project is to use Machine Learning to predict Acute Kidney Failure using chart and lab data from the MIMIC critical care database, which was collected during patient admissions to the critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.
